@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2018-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,13 @@
 
 package org.springframework.cloud.scheduler.spi.openshift;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.StatusCause;
 import io.fabric8.kubernetes.api.model.batch.CronJob;
@@ -23,6 +30,7 @@ import io.fabric8.kubernetes.api.model.batch.CronJobBuilder;
 import io.fabric8.kubernetes.api.model.batch.CronJobList;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.openshift.client.OpenShiftClient;
+
 import org.springframework.cloud.deployer.resource.docker.DockerResource;
 import org.springframework.cloud.deployer.resource.maven.MavenProperties;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
@@ -32,13 +40,15 @@ import org.springframework.cloud.deployer.spi.openshift.OpenShiftDeployerPropert
 import org.springframework.cloud.deployer.spi.openshift.ResourceHash;
 import org.springframework.cloud.deployer.spi.openshift.maven.MavenOpenShiftTaskLauncher;
 import org.springframework.cloud.deployer.spi.openshift.maven.MavenResourceJarExtractor;
-import org.springframework.cloud.scheduler.spi.core.*;
+import org.springframework.cloud.scheduler.spi.core.CreateScheduleException;
+import org.springframework.cloud.scheduler.spi.core.ScheduleInfo;
+import org.springframework.cloud.scheduler.spi.core.ScheduleRequest;
+import org.springframework.cloud.scheduler.spi.core.Scheduler;
+import org.springframework.cloud.scheduler.spi.core.SchedulerException;
+import org.springframework.cloud.scheduler.spi.core.SchedulerPropertyKeys;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Kubernetes implementation of the {@link Scheduler} SPI.
@@ -82,9 +92,11 @@ public class OpenShiftScheduler extends AbstractKubernetesDeployer implements Sc
 			}
 			else {
 
-				new MavenOpenShiftTaskLauncher((OpenShiftDeployerProperties) properties,
-						mavenProperties, (OpenShiftClient) client,
-						mavenResourceJarExtractor, resourceHash, containerFactory) {
+				new MavenOpenShiftTaskLauncher(
+						(OpenShiftDeployerProperties) this.properties,
+						this.mavenProperties, (OpenShiftClient) this.client,
+						this.mavenResourceJarExtractor, this.resourceHash,
+						this.containerFactory) {
 					@Override
 					protected String launchDockerResource(AppDeploymentRequest request) {
 						ScheduleRequest updatedScheduleRequest = new ScheduleRequest(
@@ -101,16 +113,16 @@ public class OpenShiftScheduler extends AbstractKubernetesDeployer implements Sc
 				}.launch(scheduleRequest);
 			}
 		}
-		catch (KubernetesClientException e) {
-			String invalidCronExceptionMessage = getExceptionMessageForField(e,
+		catch (KubernetesClientException ex) {
+			String invalidCronExceptionMessage = getExceptionMessageForField(ex,
 					SCHEDULE_EXPRESSION_FIELD_NAME);
 
 			if (StringUtils.hasText(invalidCronExceptionMessage)) {
-				throw new CreateScheduleException(invalidCronExceptionMessage, e);
+				throw new CreateScheduleException(invalidCronExceptionMessage, ex);
 			}
 
 			throw new CreateScheduleException(
-					"Failed to create schedule " + scheduleRequest.getScheduleName(), e);
+					"Failed to create schedule " + scheduleRequest.getScheduleName(), ex);
 		}
 	}
 
@@ -128,7 +140,7 @@ public class OpenShiftScheduler extends AbstractKubernetesDeployer implements Sc
 	@Override
 	public List<ScheduleInfo> list(String taskDefinitionName) {
 		return list().stream()
-				.filter(scheduleInfo -> taskDefinitionName
+				.filter((scheduleInfo) -> taskDefinitionName
 						.equals(scheduleInfo.getTaskDefinitionName()))
 				.collect(Collectors.toList());
 	}
@@ -138,10 +150,10 @@ public class OpenShiftScheduler extends AbstractKubernetesDeployer implements Sc
 		CronJobList cronJobList = this.client.batch().cronjobs().list();
 
 		List<CronJob> cronJobs = cronJobList.getItems();
-		List<ScheduleInfo> scheduleInfos = new ArrayList<>();
+		List<ScheduleInfo> scheduleInfos = new ArrayList();
 
 		for (CronJob cronJob : cronJobs) {
-			Map<String, String> properties = new HashMap<>();
+			Map<String, String> properties = new HashMap();
 			properties.put(SchedulerPropertyKeys.CRON_EXPRESSION,
 					cronJob.getSpec().getSchedule());
 

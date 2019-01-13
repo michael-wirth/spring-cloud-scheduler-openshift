@@ -21,15 +21,12 @@
     <distributionManagement>
         <repository>
             <id>bintray-switchbit-public</id>
-            <url>
-                https://api.bintray.com/maven/donovanmuller/switchbit-public/spring-cloud-dataflow-server-openshift/;publish=1
-            </url>
+            <url>https://api.bintray.com/maven/donovanmuller/switchbit-public/spring-cloud-dataflow-server-openshift/;publish=1</url>
         </repository>
     </distributionManagement>
 
     <properties>
         <kubernetes-client.version>4.1.0</kubernetes-client.version>
-        <!--<powermock.version>1.7.1</powermock.version>-->
         <spring-cloud-deployer-openshift.version>2.0.0.BUILD-SNAPSHOT</spring-cloud-deployer-openshift.version>
         <spring-cloud-kubernetes.version>1.0.0.RC2</spring-cloud-kubernetes.version>
         <spring-cloud-scheduler-spi.version>1.0.2.RELEASE</spring-cloud-scheduler-spi.version>
@@ -41,10 +38,6 @@
             <artifactId>spring-cloud-deployer-openshift</artifactId>
             <version>${spring-cloud-deployer-openshift.version}</version>
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>org.springframework.boot</groupId>-->
-            <!--<artifactId>spring-boot-starter-validation</artifactId>-->
-        <!--</dependency>-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
@@ -66,37 +59,32 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>org.powermock</groupId>-->
-            <!--<artifactId>powermock-module-junit4</artifactId>-->
-            <!--<version>${powermock.version}</version>-->
-            <!--<scope>test</scope>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-            <!--<groupId>org.powermock</groupId>-->
-            <!--<artifactId>powermock-api-mockito</artifactId>-->
-            <!--<version>${powermock.version}</version>-->
-            <!--<scope>test</scope>-->
-        <!--</dependency>-->
-    </dependencies>
+	</dependencies>
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>io.spring.javaformat</groupId>
-                <artifactId>spring-javaformat-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <configuration>
-                    <configLocation>checkstyle.xml</configLocation>
-                    <headerLocation>checkstyle-header.txt</headerLocation>
-                    <consoleOutput>true</consoleOutput>
-                    <includeTestSourceDirectory>false</includeTestSourceDirectory>
-                    <failsOnError>false</failsOnError>
-                    <failOnViolation>false</failOnViolation>
-                </configuration>
-            </plugin>
+			<plugin>
+				<groupId>io.spring.javaformat</groupId>
+				<artifactId>spring-javaformat-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<configuration>
+					<encoding>UTF-8</encoding>
+					<failOnViolation>true</failOnViolation>
+					<violationSeverity>warning</violationSeverity>
+					<includeTestSourceDirectory>false</includeTestSourceDirectory>
+					<configLocation>io/spring/javaformat/checkstyle/checkstyle.xml</configLocation>
+				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>com.puppycrawl.tools</groupId>
+						<artifactId>checkstyle</artifactId>
+						<version>8.16</version>
+					</dependency>
+				</dependencies>
+			</plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
