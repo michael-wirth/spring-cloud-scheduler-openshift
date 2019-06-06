@@ -54,6 +54,7 @@ import org.springframework.util.StringUtils;
  * Kubernetes implementation of the {@link Scheduler} SPI.
  *
  * @author Chris Schaefer
+ * @author Michael Wirth
  */
 public class OpenShiftScheduler extends AbstractKubernetesDeployer implements Scheduler {
 
@@ -74,7 +75,7 @@ public class OpenShiftScheduler extends AbstractKubernetesDeployer implements Sc
 			ResourceHash resourceHash, ContainerFactory containerFactory) {
 		Assert.notNull(openShiftClient, "OpenShiftClient must not be null");
 		Assert.notNull(openShiftDeployerProperties,
-				"KubernetesSchedulerProperties must not be null");
+				"OpenShiftDeployerProperties must not be null");
 
 		this.client = openShiftClient;
 		this.properties = openShiftDeployerProperties;
